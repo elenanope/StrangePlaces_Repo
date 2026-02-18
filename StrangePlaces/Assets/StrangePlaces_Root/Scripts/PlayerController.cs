@@ -151,8 +151,9 @@ public class PlayerController : MonoBehaviour
     {
        if(canInteract && npcInRange)
        {
-            DialogueManager.Instance.DialogueCall();
             if (anim.GetBool("isWalking")) anim.SetBool("isWalking", false);
+            playerRb.linearVelocity = Vector3.zero;
+            DialogueManager.Instance.DialogueCall();
        }
     }
     IEnumerator InteractRoutine()
@@ -169,7 +170,7 @@ public class PlayerController : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.CompareTag("NPC"))
+        if(other.gameObject.CompareTag("NPC") || other.gameObject.CompareTag("Pickable"))
         {
             DialogueManager.Instance.RegisterInfo(other.gameObject.GetComponent<DialogueInfo>());
             npcInRange = true;
@@ -177,7 +178,7 @@ public class PlayerController : MonoBehaviour
     }
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.CompareTag("NPC"))
+        if (other.gameObject.CompareTag("NPC") || other.gameObject.CompareTag("Pickable"))
         {
             DialogueManager.Instance.RegisterInfo(null);
             npcInRange = false;

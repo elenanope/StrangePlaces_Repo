@@ -1954,11 +1954,97 @@ PrefabInstance:
       propertyPath: m_Name
       value: SM_Book
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 39ef666e00a4a644daf85076a56445b3, type: 3}
+      propertyPath: m_TagString
+      value: Pickable
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ef666e00a4a644daf85076a56445b3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 538354007}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ef666e00a4a644daf85076a56445b3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 538354006}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ef666e00a4a644daf85076a56445b3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 538354005}
   m_SourcePrefab: {fileID: 100100000, guid: 39ef666e00a4a644daf85076a56445b3, type: 3}
+--- !u!1 &538354004 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 39ef666e00a4a644daf85076a56445b3, type: 3}
+  m_PrefabInstance: {fileID: 538354003}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &538354005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 538354004}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e7818e11a8efee0438b72e0576ed54a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  characterName: 
+  needForInteraction: 0
+  onlyLanguage: 1
+  languageValue: 20
+  dialogueLines: []
+  dialogueLinesDiscovered: []
+  endDialogueLines: 
+  customTypingSpeed: 0
+  customVoiceSounds: []
+  choices: []
+  QuestInProgressIndex: 0
+  QuestCompletedIndex: 0
+  ownBubble: {fileID: 0}
+  ownText: {fileID: 0}
+--- !u!65 &538354006
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 538354004}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 1.81, y: 1, z: 1.54}
+  m_Center: {x: 0, y: 0.41, z: 0}
+--- !u!65 &538354007
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 538354004}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 0.5665872, y: 0.17402126, z: 0.65379465}
+  m_Center: {x: 0, y: 0.08701063, z: 0}
 --- !u!1 &562089740
 GameObject:
   m_ObjectHideFlags: 0
@@ -6902,6 +6988,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Cube
   needForInteraction: 0
+  onlyLanguage: 0
+  languageValue: 0
   dialogueLines:
   - Hello
   dialogueLinesDiscovered:
@@ -7378,7 +7466,6 @@ RectTransform:
   m_Children:
   - {fileID: 2007640446}
   - {fileID: 1454148284}
-  - {fileID: 2000738760}
   - {fileID: 467618770}
   - {fileID: 1170243382}
   - {fileID: 1617302077}
@@ -8348,6 +8435,7 @@ RectTransform:
   - {fileID: 483865093}
   - {fileID: 1917658448}
   - {fileID: 1615310602}
+  - {fileID: 2000738760}
   - {fileID: 884131301}
   - {fileID: 1876980135}
   m_Father: {fileID: 812172690}
@@ -9988,6 +10076,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   characterName: Cube
   needForInteraction: 1
+  onlyLanguage: 0
+  languageValue: 0
   dialogueLines:
   - Hello
   - Do you want to help?
@@ -10018,6 +10108,7 @@ MonoBehaviour:
     givesQuest: 0100
     givesUnderstanding: 0001
     languagePercentage: 000000000a000000
+    timesAdded: 0000000000000000
   - dialogueIndex: 5
     choicesTexts:
     - '[What do I have to do?]'
@@ -10026,6 +10117,7 @@ MonoBehaviour:
     givesQuest: 0000
     givesUnderstanding: 0100
     languagePercentage: 0500000000000000
+    timesAdded: 0000000000000000
   QuestInProgressIndex: 5
   QuestCompletedIndex: 0
   ownBubble: {fileID: 1530440717}
@@ -10733,7 +10825,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.9075209, y: 0.85700005}
   m_AnchorMax: {x: 0.989, y: 0.9786668}
-  m_AnchoredPosition: {x: -0.48059082, y: 0.17834473}
+  m_AnchoredPosition: {x: -0.48046875, y: 0.17834473}
   m_SizeDelta: {x: -2, y: 3}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1876980136
@@ -11439,16 +11531,16 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2000738756}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 884131301}
+  m_Father: {fileID: 1394342670}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 1573, y: -757}
+  m_AnchoredPosition: {x: 1572.9951, y: -926.3883}
   m_SizeDelta: {x: 307.81003, y: 0}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &2007640445

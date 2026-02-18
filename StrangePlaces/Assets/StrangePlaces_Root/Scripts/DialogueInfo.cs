@@ -6,6 +6,8 @@ public class DialogueInfo : MonoBehaviour
 {
     public string characterName;
     public bool needForInteraction;
+    public bool onlyLanguage;//quitar??
+    public int languageValue;//quitar??
     public string[] dialogueLines;
     public string[] dialogueLinesDiscovered;
     //public bool[] autoProgressLines;
@@ -30,6 +32,7 @@ public class DialogueInfo : MonoBehaviour
         public bool[] givesQuest;
         public bool[] givesUnderstanding;
         public int[] languagePercentage;
+        public int[] timesAdded;
     }
     private void Awake()
     {
