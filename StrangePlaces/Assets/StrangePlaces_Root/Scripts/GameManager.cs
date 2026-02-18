@@ -21,4 +21,8 @@ public class GameManager : MonoBehaviour
         else Destroy(instance);
         DontDestroyOnLoad(gameObject);
     }
+    public void ExitGame()
+    {
+        Application.Quit();
+    }
 }

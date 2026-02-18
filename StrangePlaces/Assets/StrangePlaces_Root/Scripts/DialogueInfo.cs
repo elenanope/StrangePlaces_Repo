@@ -5,6 +5,7 @@ using UnityEngine;
 public class DialogueInfo : MonoBehaviour
 {
     public string characterName;
+    public bool needForInteraction;
     public string[] dialogueLines;
     public string[] dialogueLinesDiscovered;
     //public bool[] autoProgressLines;

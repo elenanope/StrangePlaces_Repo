@@ -3,6 +3,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class DialogueManager : MonoBehaviour
 {//REVISAR el texto se mueve, como si no fuera visibleCharacters
@@ -22,6 +23,7 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] AudioSource speaker;
 
     [SerializeField] TMP_Text textTester;
+    [SerializeField] TMP_Text decypherText;
     //[SerializeField] GameObject optionsPanel;
     [SerializeField] TMP_Text[] optionsTexts;
     [SerializeField] GameObject[] optionsBubbles;
@@ -29,9 +31,10 @@ public class DialogueManager : MonoBehaviour
 
     //[SerializeField] Font planetFont;
     //[SerializeField] Font commonFont;
-
+    int languageAdded;
     bool didDialogueStart;
     bool activeChoice;
+    bool originalTextWritten;
     bool lineFinished;
     string textToRead;
     //string completeText;
@@ -42,6 +45,7 @@ public class DialogueManager : MonoBehaviour
     int lastPercentage = 0;
     AudioClip[] npcVoices;
     GameObject npcBubble;
+    Image npcBubbleImage;
     TMP_Text npcText;
     private void Awake()
     {
@@ -52,6 +56,7 @@ public class DialogueManager : MonoBehaviour
         else Destroy(instance);
         dialogueMark.SetActive(false);
         dialoguePanel.SetActive(false);
+        decypherText.gameObject.SetActive(false);
         foreach (GameObject bubble in optionsBubbles)
         {
             bubble.SetActive(false);
@@ -65,11 +70,31 @@ public class DialogueManager : MonoBehaviour
         if(info != null && dialogueMark != null)
         {
             dialogueMark.SetActive(true);
+            if(!currentInfo.needForInteraction)
+            {
+                //sacado de startDialogue
+                if (currentInfo.ownBubble != null)
+                {
+                    npcBubble = currentInfo.ownBubble;
+                    npcBubble.SetActive(true);
+                    npcBubbleImage = npcBubble.transform.GetChild(0).GetComponent<Image>();
+                    npcBubbleImage.color = new Color(npcBubbleImage.color.r, npcBubbleImage.color.g, npcBubbleImage.color.b, 0.5f);
+                }
+                if (currentInfo.ownText != null)
+                {
+                    npcText = currentInfo.ownText;
+                    npcText.text = currentInfo.dialogueLines[0];
+                }//end
+            }
             //poner en posición indicada
         }
         else
         {
             dialogueMark.SetActive(false);
+            if(npcBubble != null)
+            {
+                if(npcBubble.activeSelf) npcBubble.SetActive(false);
+            }
         }
     }
     public void DialogueCall()
@@ -133,7 +158,11 @@ public class DialogueManager : MonoBehaviour
         }
         if (currentInfo.choices[choicesIndex].givesUnderstanding[optionChosen])
         {
-            GameManager.Instance.languageUnderstanding += currentInfo.choices[choicesIndex].languagePercentage[optionChosen];
+            if(languageAdded < 2)
+            {
+                GameManager.Instance.languageUnderstanding += currentInfo.choices[choicesIndex].languagePercentage[optionChosen];
+                languageAdded++;
+            }
         }
 
         lineIndex = currentInfo.choices[choicesIndex].nextDialogueIndexes[optionChosen];
@@ -154,14 +183,17 @@ public class DialogueManager : MonoBehaviour
         lineFinished = false;
         dialoguePanel.SetActive(true);
         dialogueMark.SetActive(false);
-        if (currentInfo.ownBubble != null)
+        if(currentInfo.needForInteraction)
         {
-            npcBubble = currentInfo.ownBubble;
-            npcBubble.SetActive(true);
-        }
-        if (currentInfo.ownText != null)
-        {
-            npcText = currentInfo.ownText;
+            if (currentInfo.ownBubble != null)
+            {
+                npcBubble = currentInfo.ownBubble;
+                npcBubble.SetActive(true);
+            }
+            if (currentInfo.ownText != null)
+            {
+                npcText = currentInfo.ownText;
+            }
         }
         if (currentInfo.customVoiceSounds.Length > 0) npcVoices = currentInfo.customVoiceSounds;
         typingSpeed = currentInfo.customTypingSpeed;
@@ -196,9 +228,10 @@ public class DialogueManager : MonoBehaviour
     }
     void ShowDialogue()
     {
+        originalTextWritten = false;
         textTester.text = textToRead;
         textTester.ForceMeshUpdate();
-        if (npcText != null)
+        if (npcText != null && currentInfo.needForInteraction)
         {
             npcText.text = string.Empty;
             npcText.maxVisibleCharacters = 0;
@@ -229,6 +262,7 @@ public class DialogueManager : MonoBehaviour
     {
         textTester.text = textToRead;
         textTester.ForceMeshUpdate();
+        StartCoroutine(Decyphering());
         int totalVisible = textTester.textInfo.characterCount +1;
         for (int i = 0; i < totalVisible; i++)
         {
@@ -236,15 +270,48 @@ public class DialogueManager : MonoBehaviour
             if (speaker != null) NPCSpeak();
             yield return new WaitForSeconds(typingSpeed);
         }
-        StartCoroutine(TypeLine()); //antes de esto, solo ha habido texto en la consola diciendo decyphering
+        originalTextWritten = true;
+        //StartCoroutine(TypeLine()); //antes de esto, solo ha habido texto en la consola diciendo decyphering
     }
-
+    IEnumerator Decyphering()
+    {
+        string decypheringText = "decyphering...";
+        while(!originalTextWritten)
+        {
+            decypherText.gameObject.SetActive(true);
+            decypherText.text = decypheringText;
+            decypherText.maxVisibleCharacters = 0;
+            decypherText.ForceMeshUpdate();
+            for (int i = 0; i < decypherText.textInfo.characterCount; i++)
+            {
+                decypherText.maxVisibleCharacters++;
+                //if (speaker != null) NPCSpeak(); PONER SONIDO DE TYPING
+                yield return new WaitForSeconds(typingSpeed/2);
+            }
+            if(!currentInfo.needForInteraction)
+            {
+                npcBubbleImage.color = new Color(npcBubbleImage.color.r, npcBubbleImage.color.g, npcBubbleImage.color.b, 1f);
+                originalTextWritten = true;
+            }
+            yield return new WaitForSeconds(1.5f);
+            //se escribe el texto, letra a letra, se hace una pausa 1f y vuelve a empezar
+        }
+        decypherText.gameObject.SetActive(false);
+        StartCoroutine(TypeLine());
+    }
     void CloseDialogue()
     {
         didDialogueStart = false;
         dialoguePanel.SetActive(false);
         lastPercentage = GameManager.Instance.languageUnderstanding;
-        if (npcBubble != null) npcBubble.SetActive(false);
+        if (npcBubble != null)
+        {
+            if(currentInfo.needForInteraction) npcBubble.SetActive(false);
+            else
+            {
+                npcBubbleImage.color = new Color(npcBubbleImage.color.r, npcBubbleImage.color.g, npcBubbleImage.color.b, 0.5f);
+            }
+        }
         //optionsPanel.SetActive(false);
         dialogueMark.SetActive(true); 
         GameManager.Instance.playerInDialogue = false;
@@ -273,6 +340,7 @@ public class DialogueManager : MonoBehaviour
             else
             {
                 currentInfo.dialogueLinesDiscovered[currentIndex] += textTester.textInfo.wordInfo[randomIndex].GetWord() + " ";
+                Debug.Log("palabra nueva: " + textTester.textInfo.wordInfo[randomIndex].GetWord());
                 yield return new WaitForSeconds(0.5f);
                 //currentInfo.dialogueLinesDiscovered[lineIndex] += dialogueText.text.Substring(dialogueText.textInfo.wordInfo[randomIndex].firstCharacterIndex, dialogueText.textInfo.wordInfo[randomIndex].lastCharacterIndex);
 
@@ -299,7 +367,8 @@ public class DialogueManager : MonoBehaviour
             textToRead = modifiedText;
         }
         //StartCoroutine(TypeLine());//poner solo:
-        StartCoroutine(TypeOriginalLine());
+        if (currentInfo.needForInteraction)StartCoroutine(TypeOriginalLine());
+        else StartCoroutine(Decyphering()); //StartCoroutine(TypeLine());
     }
     void NPCSpeak()
     {
