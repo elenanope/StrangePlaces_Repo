@@ -27,6 +27,8 @@ public class DialogueInfo : MonoBehaviour
         public string[] choicesTexts;
         public int[] nextDialogueIndexes;
         public bool[] givesQuest;
+        public bool[] givesUnderstanding;
+        public int[] languagePercentage;
     }
     private void Awake()
     {

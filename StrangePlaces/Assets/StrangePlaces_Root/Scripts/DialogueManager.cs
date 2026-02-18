@@ -127,10 +127,15 @@ public class DialogueManager : MonoBehaviour
             bubble.SetActive(false);
         }
         //optionsPanel.SetActive(false);
-        if (currentInfo.choices[choicesIndex].givesQuest[optionChosen] && optionChosen == 0)
+        if (currentInfo.choices[choicesIndex].givesQuest[optionChosen])
         {
             GameManager.Instance.questState = 1;
         }
+        if (currentInfo.choices[choicesIndex].givesUnderstanding[optionChosen])
+        {
+            GameManager.Instance.languageUnderstanding += currentInfo.choices[choicesIndex].languagePercentage[optionChosen];
+        }
+
         lineIndex = currentInfo.choices[choicesIndex].nextDialogueIndexes[optionChosen];
         textToRead = currentInfo.dialogueLines[lineIndex];
         textToAdd = "<br><indent=10%><color=white><font=Font_m5x7>" + optionsTexts[optionChosen].text + "</font></color></indent>";
@@ -210,26 +215,30 @@ public class DialogueManager : MonoBehaviour
 
         dialogueText.text += textToRead; 
         dialogueText.ForceMeshUpdate();
+        int totalVisible = textTester.textInfo.characterCount +1;
+        for (int i = 0; i < totalVisible; i++)
+        {
+            dialogueText.maxVisibleCharacters++;
+            if (speaker != null) NPCSpeak();//hacer que sea de sonido de máquina
+            yield return new WaitForSeconds(typingSpeed/2);
+        }
+        lineFinished = true;
+        ActivateOptions();
+    }
+    IEnumerator TypeOriginalLine()//dejar solo el diálogo de npc en la escena
+    {
         textTester.text = textToRead;
         textTester.ForceMeshUpdate();
         int totalVisible = textTester.textInfo.characterCount +1;
-        //escribir en la "consola" del juego que se está decodificando el idioma
-        //esperar segundos
         for (int i = 0; i < totalVisible; i++)
         {
-
-        //}
-        //foreach (char ch in textToRead)
-        //{
-            dialogueText.maxVisibleCharacters++;
             if (npcText != null) npcText.maxVisibleCharacters++;
             if (speaker != null) NPCSpeak();
             yield return new WaitForSeconds(typingSpeed);
         }
-        Debug.Log("YATA");
-        lineFinished = true;
-        ActivateOptions();
+        StartCoroutine(TypeLine()); //antes de esto, solo ha habido texto en la consola diciendo decyphering
     }
+
     void CloseDialogue()
     {
         didDialogueStart = false;
@@ -289,7 +298,8 @@ public class DialogueManager : MonoBehaviour
             }
             textToRead = modifiedText;
         }
-        StartCoroutine(TypeLine());
+        //StartCoroutine(TypeLine());//poner solo:
+        StartCoroutine(TypeOriginalLine());
     }
     void NPCSpeak()
     {

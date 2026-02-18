@@ -72,7 +72,7 @@ public class PlayerController : MonoBehaviour
 
         if (timeSinceMove >= 20f)
         {
-            anim.SetTrigger("varyIdle");
+            //anim.SetTrigger("varyIdle");
             timeSinceMove = -10;
         }
     }
