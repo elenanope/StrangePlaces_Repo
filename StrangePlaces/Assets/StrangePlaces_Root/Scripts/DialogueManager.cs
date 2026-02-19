@@ -47,6 +47,8 @@ public class DialogueManager : MonoBehaviour
     GameObject npcBubble;
     Image npcBubbleImage;
     TMP_Text npcText;
+    int unlockedVocab;
+    bool singleCourtesy;
     private void Awake()
     {
         if(instance == null)
@@ -114,28 +116,17 @@ public class DialogueManager : MonoBehaviour
                 {
                     if (!didDialogueStart) StartDialogue();
                     else if (lineFinished) NextDialogue();
-                    else
-                    {
-                        /*StopAllCoroutines();
-                        dialogueText.maxVisibleCharacters = currentInfo.dialogueLines[lineIndex].Length;
-                        npcText.maxVisibleCharacters = currentInfo.dialogueLines[lineIndex].Length;
-                        ActivateOptions();*/
-                    }
                 }
                 else
                 {
-                    if (!optionsBubbles[0].activeSelf)//if(!optionsPanel.activeSelf)
-                    {
-                        ActivateOptions();
-                    }
+                    if (!optionsBubbles[0].activeSelf) ActivateOptions();
                 }
             }
             else
             {
-                GameManager.Instance.languageUnderstanding += currentInfo.languageValue;
+                GameManager.Instance.AddLanguage(currentInfo.languageValue);
                 if(currentInfo.languageValue > 0)
                 {
-                    currentInfo.languageValue = 0; 
                     dialogueMark.SetActive(false);
                     originalTextWritten = false;
                     StartCoroutine(Decyphering(GameManager.Instance.languageUnderstanding + "% language unlocked"));
@@ -146,13 +137,12 @@ public class DialogueManager : MonoBehaviour
     void ActivateOptions()
     {
         EventSystem.current.SetSelectedGameObject(null);
-        for (int i = 0; i < currentInfo.choices.Length; i++)//retrasar esto hasta el final
+        for (int i = 0; i < currentInfo.choices.Length; i++)
         {
             if (currentInfo.choices[i].dialogueIndex == currentIndex)
             {
                 int choiceIndex = 0;
                 activeChoice = true;
-                //optionsPanel.SetActive(true);
                 choicesIndex = i;
                 foreach (string choice in currentInfo.choices[i].choicesTexts)
                 {
@@ -172,16 +162,12 @@ public class DialogueManager : MonoBehaviour
         {
             bubble.SetActive(false);
         }
-        //optionsPanel.SetActive(false);
-        if (currentInfo.choices[choicesIndex].givesQuest[optionChosen])
-        {
-            GameManager.Instance.questState = 1;
-        }
+        if (currentInfo.choices[choicesIndex].givesQuest[optionChosen]) GameManager.Instance.questState = 1;//completar quest!!
         if (currentInfo.choices[choicesIndex].givesUnderstanding[optionChosen])
         {
             if(currentInfo.choices[choicesIndex].timesAdded[optionChosen] < 2)//solo permite añadir 2 idioma en total por dialogueInfo, si eso cambiar, que sea por choices[choicesIndex]
             {
-                GameManager.Instance.languageUnderstanding += currentInfo.choices[choicesIndex].languagePercentage[optionChosen];
+                GameManager.Instance.AddLanguage(currentInfo.choices[choicesIndex].languagePercentage[optionChosen]);
                 currentInfo.choices[choicesIndex].timesAdded[optionChosen]++;
             }
         }
@@ -196,9 +182,11 @@ public class DialogueManager : MonoBehaviour
     }
     void StartDialogue()
     {
+        StopAllCoroutines();
         didDialogueStart = true;
         dialogueText.text = string.Empty;
         dialogueText.maxVisibleCharacters = 0;
+        unlockedVocab = GameManager.Instance.languageUnderstanding;
         lineIndex = 0;
         optionChosen = -1;
         lineFinished = false;
@@ -211,27 +199,18 @@ public class DialogueManager : MonoBehaviour
                 npcBubble = currentInfo.ownBubble;
                 npcBubble.SetActive(true);
             }
-            if (currentInfo.ownText != null)
-            {
-                npcText = currentInfo.ownText;
-            }
+            if (currentInfo.ownText != null) npcText = currentInfo.ownText;
         }
         if (currentInfo.customVoiceSounds.Length > 0) npcVoices = currentInfo.customVoiceSounds;
         typingSpeed = currentInfo.customTypingSpeed;
         GameManager.Instance.playerInDialogue = true;
 
-        if (GameManager.Instance.questState == 1)
-        {
-            lineIndex = currentInfo.QuestInProgressIndex;
-        }
-        else if (GameManager.Instance.questState == 2)
-        {
-            lineIndex = currentInfo.QuestCompletedIndex;
-        }
+        if (GameManager.Instance.questState == 1) lineIndex = currentInfo.QuestInProgressIndex;
+        else if (GameManager.Instance.questState == 2) lineIndex = currentInfo.QuestCompletedIndex;
         textToRead = currentInfo.dialogueLines[lineIndex];
         ShowDialogue();
     }
-    void NextDialogue() //hacer que se añada el texto, en vez de cambiarlo
+    void NextDialogue()
     {
         lineFinished = false;
         if(currentInfo.endDialogueLines[lineIndex])
@@ -239,10 +218,7 @@ public class DialogueManager : MonoBehaviour
             CloseDialogue();
             return;
         }
-        else
-        {
-            lineIndex++;
-        }
+        else lineIndex++;
 
         textToRead = currentInfo.dialogueLines[lineIndex];
         ShowDialogue();
@@ -256,7 +232,6 @@ public class DialogueManager : MonoBehaviour
         {
             npcText.text = string.Empty;
             npcText.maxVisibleCharacters = 0;
-
             npcText.text = textToRead;
         }
         currentIndex = lineIndex;
@@ -273,13 +248,13 @@ public class DialogueManager : MonoBehaviour
         for (int i = 0; i < totalVisible; i++)
         {
             dialogueText.maxVisibleCharacters++;
-            if (speaker != null) NPCSpeak();//hacer que sea de sonido de máquina
+            //if (speaker != null) NPCSpeak();//hacer que sea de sonido de máquina
             yield return new WaitForSeconds(typingSpeed/2);
         }
         lineFinished = true;
         ActivateOptions();
     }
-    IEnumerator TypeOriginalLine()//dejar solo el diálogo de npc en la escena
+    IEnumerator TypeOriginalLine()//typea solo el diálogo de npc en la escena
     {
         textTester.text = textToRead;
         textTester.ForceMeshUpdate();
@@ -292,77 +267,81 @@ public class DialogueManager : MonoBehaviour
             yield return new WaitForSeconds(typingSpeed);
         }
         originalTextWritten = true;
-        //StartCoroutine(TypeLine()); //antes de esto, solo ha habido texto en la consola diciendo decyphering
     }
     IEnumerator Decyphering(string textToRead)
     {
         string decypheringText = textToRead;
-        while (!originalTextWritten)
+        
+        if (currentInfo.languageValue > 0)
         {
-            decypherText.gameObject.SetActive(true);
-            decypherText.text = decypheringText;
-            decypherText.maxVisibleCharacters = 0;
-            decypherText.ForceMeshUpdate();
-            for (int i = 0; i < decypherText.textInfo.characterCount; i++)
-            {
-                decypherText.maxVisibleCharacters++;
-                //if (speaker != null) NPCSpeak(); PONER SONIDO DE TYPING
-                yield return new WaitForSeconds(typingSpeed/2);
-            }
-            if(!currentInfo.needForInteraction || currentInfo.onlyLanguage)
-            {
-                if(npcBubbleImage!= null)npcBubbleImage.color = new Color(npcBubbleImage.color.r, npcBubbleImage.color.g, npcBubbleImage.color.b, 1f);
-                originalTextWritten = true;
-            }
-            yield return new WaitForSeconds(1.5f);
-            //se escribe el texto, letra a letra, se hace una pausa 1f y vuelve a empezar
-        }
-        if (!currentInfo.onlyLanguage)
-        {
-            StartCoroutine(TypeLine());
-            if (optionChosen >= 0 && choicesIndex >= 0)
-            {
-                if (currentInfo.choices.Length >= choicesIndex && currentInfo.choices[choicesIndex].givesUnderstanding.Length >= optionChosen)
+            currentInfo.languageValue = 0;
+            while (!originalTextWritten)
                 {
-                    if (currentInfo.choices[choicesIndex].givesUnderstanding[optionChosen])
+                    decypherText.gameObject.SetActive(true);
+                    decypherText.text = decypheringText;
+                    decypherText.maxVisibleCharacters = 0;
+                    decypherText.ForceMeshUpdate();
+                    for (int i = 0; i < decypherText.textInfo.characterCount; i++)
                     {
-                        if (currentInfo.choices[choicesIndex].timesAdded[optionChosen] < 3)
+                        decypherText.maxVisibleCharacters++;
+                        //if (speaker != null) NPCSpeak(); PONER SONIDO DE TYPING
+                        yield return new WaitForSeconds(typingSpeed / 2);
+                    }
+                    if (!currentInfo.needForInteraction || currentInfo.onlyLanguage)
+                    {
+                        if (npcBubbleImage != null) npcBubbleImage.color = new Color(npcBubbleImage.color.r, npcBubbleImage.color.g, npcBubbleImage.color.b, 1f);
+                        originalTextWritten = true;
+                    }
+                    yield return new WaitForSeconds(1.5f);
+                    //se escribe el texto, letra a letra, se hace una pausa y vuelve a empezar/acaba
+                }
+            }
+            
+        if(currentInfo != null)
+        {
+            if (!currentInfo.onlyLanguage)
+            {
+                StartCoroutine(TypeLine());
+                if (optionChosen >= 0 && choicesIndex >= 0)
+                {
+                    if (currentInfo.choices.Length >= choicesIndex && currentInfo.choices[choicesIndex].givesUnderstanding.Length >= optionChosen)
+                    {
+                        if (currentInfo.choices[choicesIndex].givesUnderstanding[optionChosen])
                         {
-                            decypheringText = GameManager.Instance.languageUnderstanding + "% language unlocked";
-                            decypherText.text = decypheringText;
-                            decypherText.maxVisibleCharacters = 0;
-                            decypherText.ForceMeshUpdate();
-                            for (int i = 0; i < decypherText.textInfo.characterCount; i++)
+                            if (currentInfo.choices[choicesIndex].timesAdded[optionChosen] < 3)
                             {
-                                decypherText.maxVisibleCharacters++;
-                                //if (speaker != null) NPCSpeak(); PONER SONIDO DE TYPING
-                                yield return new WaitForSeconds(typingSpeed / 2);
+                                decypheringText = GameManager.Instance.languageUnderstanding + "% language unlocked";
+                                decypherText.text = decypheringText;
+                                decypherText.maxVisibleCharacters = 0;
+                                decypherText.ForceMeshUpdate();
+                                for (int i = 0; i < decypherText.textInfo.characterCount; i++)
+                                {
+                                    decypherText.maxVisibleCharacters++;
+                                    //if (speaker != null) NPCSpeak(); PONER SONIDO DE TYPING
+                                    yield return new WaitForSeconds(typingSpeed / 2);
+                                }
+                                choicesIndex = -1;
+                                optionChosen = -1;
+                                yield return new WaitForSeconds(1.5f);
                             }
-                            choicesIndex = -1;
-                            optionChosen = -1;
-                            yield return new WaitForSeconds(1.5f);
                         }
                     }
                 }
             }
         }
-        
         decypherText.gameObject.SetActive(false);
     }
     void CloseDialogue()
     {
+        StopAllCoroutines();
         didDialogueStart = false;
         dialoguePanel.SetActive(false);
-        lastPercentage = GameManager.Instance.languageUnderstanding;
+        lastPercentage = unlockedVocab;
         if (npcBubble != null)
         {
             if(currentInfo.needForInteraction) npcBubble.SetActive(false);
-            else
-            {
-                npcBubbleImage.color = new Color(npcBubbleImage.color.r, npcBubbleImage.color.g, npcBubbleImage.color.b, 0.5f);
-            }
+            else npcBubbleImage.color = new Color(npcBubbleImage.color.r, npcBubbleImage.color.g, npcBubbleImage.color.b, 0.5f);
         }
-        //optionsPanel.SetActive(false);
         dialogueMark.SetActive(true); 
         GameManager.Instance.playerInDialogue = false;
     }
@@ -370,53 +349,85 @@ public class DialogueManager : MonoBehaviour
     {
         string startFontChange = "<font=Font_m5x7><alpha=#30>["; // o Font_m5x7
         string endFontChange = "]<alpha=#FF></font>";
-        int unlockedVocab = GameManager.Instance.languageUnderstanding;
         int totalWords = textTester.textInfo.wordCount;
         int wordsToRead = 0;
         int randomIndex;
         string modifiedText;
         string[] specialWords;
         //yield return new WaitForSeconds(0.5f);
-        modifiedText = textToRead;
-        if (lastPercentage != unlockedVocab) wordsToRead = (int)((unlockedVocab/100f) * totalWords);
-        while (wordsToRead>0)//sacar palabras random, guardar en una lista de donde salen esas palabras random y cuáles son
+        modifiedText = textToRead; 
+        specialWords = currentInfo.dialogueLinesDiscovered[currentIndex].Split(' ');
+        int actualWords = 0; 
+        foreach (var word in specialWords)
         {
-            //for (int i = wordsToRead; wordsToRead > 0; i--) {
-            randomIndex = Random.Range(0, totalWords);
-            if(currentInfo.dialogueLinesDiscovered[currentIndex].Contains(textTester.textInfo.wordInfo[randomIndex].GetWord()))
+            if (word != "")
             {
-                
+                actualWords++;
+            }
+        }
+
+        if (lastPercentage != unlockedVocab)
+        {
+            //Debug.Log("Actualizamos palabras");
+            wordsToRead = (int)((unlockedVocab/100f) * totalWords);
+            if (totalWords == 1 && unlockedVocab >= 90f && !singleCourtesy)
+            {
+                wordsToRead += 1;
+                singleCourtesy = true;
+            }
+        }
+        Debug.Log("El porcentaje de entendimiento es " + unlockedVocab + "%");
+        wordsToRead -= actualWords;
+        //sacar palabras random, guardar en una lista de donde salen esas palabras random y cuáles son
+        if(unlockedVocab < 100 && wordsToRead < totalWords)
+        {
+            while (wordsToRead > 0)
+            {
+                randomIndex = Random.Range(0, totalWords);
+                if (!currentInfo.dialogueLinesDiscovered[currentIndex].Contains(textTester.textInfo.wordInfo[randomIndex].GetWord()))
+                {
+                    currentInfo.dialogueLinesDiscovered[currentIndex] += textTester.textInfo.wordInfo[randomIndex].GetWord() + " ";
+                    yield return new WaitForSeconds(0.5f);
+                    wordsToRead--;
+                }
+                else
+                {
+                    if (actualWords == (int)((unlockedVocab / 100f) * totalWords))//si hay tantas palabras quitadas, como las que deberían de ser quitadas
+                    {
+                        //Debug.Log("Se ha intentado quitar la palabra: " + textTester.textInfo.wordInfo[randomIndex].GetWord() + ", pero ya estaba quitada. Actualmente, " +"las palabras que se deben quitar son " + (int)((unlockedVocab / 100f) * totalWords) + "/" + totalWords);
+                        wordsToRead--;//si ya está en el texto, se le resta del porcentaje
+                    }
+                    yield return null;
+                }
+            }
+        }
+        if(currentInfo.dialogueLinesDiscovered.Length > 0)
+        {
+            if (unlockedVocab >= 100 || wordsToRead == totalWords)
+            {
+                unlockedVocab = 100;
+                singleCourtesy = false;
+                modifiedText = modifiedText.Insert(0, startFontChange);
+                modifiedText = modifiedText.Insert(modifiedText.Length, endFontChange);
             }
             else
             {
-                currentInfo.dialogueLinesDiscovered[currentIndex] += textTester.textInfo.wordInfo[randomIndex].GetWord() + " ";
-                Debug.Log("palabra nueva: " + textTester.textInfo.wordInfo[randomIndex].GetWord());
-                yield return new WaitForSeconds(0.5f);
-                //currentInfo.dialogueLinesDiscovered[lineIndex] += dialogueText.text.Substring(dialogueText.textInfo.wordInfo[randomIndex].firstCharacterIndex, dialogueText.textInfo.wordInfo[randomIndex].lastCharacterIndex);
-
-                //selecciona palabra, que no esté en currentInfo.dialogueLinesDiscovered[lineIndex]
-                //la registra en currentInfo.dialogueLinesDiscovered[lineIndex]
-                wordsToRead--;
-            }
-        }
-        //words = currentInfo.dialogueLines[lineIndex].Split(' ', '.');
-        if(currentInfo.dialogueLinesDiscovered.Length > 0)
-        {
-            specialWords = currentInfo.dialogueLinesDiscovered[currentIndex].Split(' ');
-            foreach (string word in specialWords)
-            {
-                if(word != "")
+                specialWords = currentInfo.dialogueLinesDiscovered[currentIndex].Split(' ');
+                foreach (string word in specialWords)
                 {
-                    if (modifiedText.Contains(word))
+                    if (word != "")
                     {
-                        modifiedText = modifiedText.Insert(modifiedText.IndexOf(word), startFontChange);
-                        modifiedText = modifiedText.Insert(modifiedText.IndexOf(word) + word.Length, endFontChange);
+                        if (modifiedText.Contains(word))
+                        {
+                            modifiedText = modifiedText.Insert(modifiedText.IndexOf(word), startFontChange);
+                            modifiedText = modifiedText.Insert(modifiedText.IndexOf(word) + word.Length, endFontChange);
+                        }
                     }
                 }
             }
             textToRead = modifiedText;
+            
         }
-        //StartCoroutine(TypeLine());//poner solo:
         if (currentInfo.needForInteraction)StartCoroutine(TypeOriginalLine());
         else StartCoroutine(Decyphering("decyphering...")); //StartCoroutine(TypeLine());
     }

@@ -9,7 +9,7 @@ public class GameManager : MonoBehaviour
     }
 
     public int questState;//0 unknown, 1 accepted, 2 completed
-    public int languageUnderstanding;
+    public int languageUnderstanding;//{ get; private set; }
     public bool playerInDialogue;
 
     private void Awake()
@@ -24,5 +24,9 @@ public class GameManager : MonoBehaviour
     public void ExitGame()
     {
         Application.Quit();
+    }
+    public void AddLanguage(int numberAdded)
+    {
+        if (languageUnderstanding < 100) languageUnderstanding += numberAdded;
     }
 }
