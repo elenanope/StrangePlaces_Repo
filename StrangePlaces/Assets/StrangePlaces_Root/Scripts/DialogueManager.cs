@@ -115,7 +115,11 @@ public class DialogueManager : MonoBehaviour
                 if (!activeChoice)
                 {
                     if (!didDialogueStart) StartDialogue();
-                    else if (lineFinished) NextDialogue();
+                    else if (lineFinished)
+                    {
+                        dialogueMark.SetActive(false);
+                        NextDialogue();
+                    }
                 }
                 else
                 {
@@ -150,8 +154,10 @@ public class DialogueManager : MonoBehaviour
                     optionsTexts[choiceIndex].text = choice;
                     choiceIndex++;
                 }
+                return;
             }
         }
+        if (!currentInfo.endDialogueLines[lineIndex]) dialogueMark.SetActive(true);
     }
     public void ChooseOption(int optionNumber)
     {
@@ -272,7 +278,7 @@ public class DialogueManager : MonoBehaviour
     {
         string decypheringText = textToRead;
         
-        if (currentInfo.languageValue > 0)
+        if (currentInfo.languageValue > 0 || !currentInfo.onlyLanguage)
         {
             currentInfo.languageValue = 0;
             while (!originalTextWritten)
@@ -335,7 +341,8 @@ public class DialogueManager : MonoBehaviour
     {
         StopAllCoroutines();
         didDialogueStart = false;
-        dialoguePanel.SetActive(false);
+        dialoguePanel.SetActive(false); 
+        decypherText.gameObject.SetActive(false);
         lastPercentage = unlockedVocab;
         if (npcBubble != null)
         {
