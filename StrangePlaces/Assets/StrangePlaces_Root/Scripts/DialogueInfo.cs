@@ -7,6 +7,8 @@ public class DialogueInfo : MonoBehaviour
     public string characterName;
     public bool needForInteraction;
     public bool onlyLanguage;//quitar??
+    public bool pickUp;
+    public string pickUpNeeded;
     public int languageValue;//quitar??
     public string[] dialogueLines;
     public string[] dialogueLinesDiscovered;
@@ -16,8 +18,12 @@ public class DialogueInfo : MonoBehaviour
     public float customTypingSpeed;
     public AudioClip[] customVoiceSounds;
     public ChoiceElements[] choices;
-    public int QuestInProgressIndex;
-    public int QuestCompletedIndex;
+    public int questInProgressIndex;
+    public int questCompletedIndex;
+    public int questIndex = -1;
+    public bool questWinsGame;
+    public bool questUnlocksTrigger;
+    public GameObject unlockedTrigger;
 
     //poner esto que se mueva de npc a npc? en dialogue manager
     public GameObject ownBubble;
@@ -31,11 +37,16 @@ public class DialogueInfo : MonoBehaviour
         public int[] nextDialogueIndexes;
         public bool[] givesQuest;
         public bool[] givesUnderstanding;
+        public string[] pickUpNeeded;
         public int[] languagePercentage;
         public int[] timesAdded;
     }
     private void Awake()
     {
         if (ownBubble != null) ownBubble.SetActive(false);
+        if(questIndex == -1)
+        {
+            unlockedTrigger.SetActive(false);
+        }
     }
 }

@@ -8,9 +8,11 @@ public class GameManager : MonoBehaviour
         get { return instance; }
     }
 
-    public int questState;//0 unknown, 1 accepted, 2 completed
+    public int[] questState;//0 unknown, 1 accepted, 2 completed
     public int languageUnderstanding;//{ get; private set; }
     public bool playerInDialogue;
+    public string heldObject;
+    public GameObject heldObjectMesh;
 
     private void Awake()
     {
@@ -28,5 +30,9 @@ public class GameManager : MonoBehaviour
     public void AddLanguage(int numberAdded)
     {
         if (languageUnderstanding < 100) languageUnderstanding += numberAdded;
+    }
+    public void WinGame()
+    {
+        Debug.Log("you won");
     }
 }

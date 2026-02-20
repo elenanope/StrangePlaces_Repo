@@ -47,6 +47,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] AudioSource playerSpeaker;
 
     [SerializeField] Transform camTransform;
+    [SerializeField] Transform holdingPoint;
     [SerializeField] bool hasTurned = false;
     [SerializeField] float rotationTime = 20f;
 
@@ -153,6 +154,11 @@ public class PlayerController : MonoBehaviour
        {
             if (anim.GetBool("isWalking")) anim.SetBool("isWalking", false);
             playerRb.linearVelocity = Vector3.zero;
+            if (GameManager.Instance.heldObjectMesh != null)
+            {
+                GameManager.Instance.heldObjectMesh.transform.parent = holdingPoint;
+                GameManager.Instance.heldObjectMesh.transform.localPosition = new Vector3(0f, 0f, 0f);
+            }
             DialogueManager.Instance.DialogueCall();
        }
     }
@@ -170,18 +176,20 @@ public class PlayerController : MonoBehaviour
     }
     private void OnTriggerEnter(Collider other)
     {
-        if(other.gameObject.CompareTag("NPC") || other.gameObject.CompareTag("Pickable"))
+        if(other.gameObject.CompareTag("NPC") || other.gameObject.CompareTag("Interactable") || other.gameObject.CompareTag("Pickable"))
         {
             DialogueManager.Instance.RegisterInfo(other.gameObject.GetComponent<DialogueInfo>());
             npcInRange = true;
+            if (other.gameObject.CompareTag("Pickable")) GameManager.Instance.heldObjectMesh = other.gameObject;
         }
     }
     private void OnTriggerExit(Collider other)
     {
-        if (other.gameObject.CompareTag("NPC") || other.gameObject.CompareTag("Pickable"))
+        if (other.gameObject.CompareTag("NPC") || other.gameObject.CompareTag("Interactable") || other.gameObject.CompareTag("Pickable"))
         {
             DialogueManager.Instance.RegisterInfo(null);
             npcInRange = false;
+            if (other.gameObject.CompareTag("Pickable")) GameManager.Instance.heldObjectMesh = null;
         }
     }
     #region Input Methods
