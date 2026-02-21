@@ -24,7 +24,7 @@ public class DialogueInfo : MonoBehaviour
     public int questIndex = -1;
     public bool questWinsGame;
     public bool questUnlocksTrigger;
-    public GameObject unlockedTrigger;
+    public GameObject unlockedTrigger = null;
 
     //poner esto que se mueva de npc a npc? en dialogue manager
     public GameObject ownBubble;
@@ -47,7 +47,7 @@ public class DialogueInfo : MonoBehaviour
         if (ownBubble != null) ownBubble.SetActive(false);
         if (questIndex == -1)
         {
-            unlockedTrigger.SetActive(false);
+            if(unlockedTrigger!= null)unlockedTrigger.SetActive(false);
         }
         else return;
     }

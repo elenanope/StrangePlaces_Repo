@@ -21,8 +21,13 @@ public class DialogueManager : MonoBehaviour
     [SerializeField] TMP_Text dialogueText; 
     [SerializeField] GameObject dialoguePanel; 
     public GameObject dialogueMark; 
-    [SerializeField] AudioSource speaker;
+    [SerializeField] AudioSource npcSpeaker;
+    [SerializeField] AudioSource machineSpeaker;
+    [SerializeField] AudioSource consoleSpeaker;
     [SerializeField] GameObject winPanel;
+
+    [SerializeField] AudioClip[] machineSounds;
+    [SerializeField] AudioClip consoleSound;
 
     [SerializeField] TMP_Text textTester;
     [SerializeField] TMP_Text decypherText;
@@ -75,7 +80,13 @@ public class DialogueManager : MonoBehaviour
     public void RegisterInfo(DialogueInfo info)
     {
         currentInfo = info;
-            if(!currentInfo.onlyLanguage)
+        if (currentInfo == null)
+        {
+            npcBubble.SetActive(false);
+        }
+        else
+        {
+            if (!currentInfo.onlyLanguage)
             {
                 if (!currentInfo.needForInteraction)
                 {
@@ -92,7 +103,7 @@ public class DialogueManager : MonoBehaviour
                     {
                         npcText = currentInfo.ownText;
                         lineIndex = 0;
-                        if(currentInfo.questIndex != -1)
+                        if (currentInfo.questIndex != -1)
                         {
                             if (GameManager.Instance.questState[currentInfo.questIndex] == 1) lineIndex = currentInfo.questInProgressIndex;
                             else if (GameManager.Instance.questState[currentInfo.questIndex] == 2) lineIndex = currentInfo.questCompletedIndex;
@@ -102,6 +113,7 @@ public class DialogueManager : MonoBehaviour
                 }
                 //poner en posición indicada
             }
+        }
     }
     public void DialogueCall()
     {
@@ -285,7 +297,7 @@ public class DialogueManager : MonoBehaviour
         for (int i = 0; i < totalVisible; i++)
         {
             dialogueText.maxVisibleCharacters++;
-            //if (speaker != null) NPCSpeak();//hacer que sea de sonido de máquina
+            if (machineSpeaker != null) MachineSpeak();//hacer que sea de sonido de máquina
             yield return new WaitForSeconds(typingSpeed/2);
         }
         lineFinished = true;
@@ -300,7 +312,7 @@ public class DialogueManager : MonoBehaviour
         for (int i = 0; i < totalVisible; i++)
         {
             if (npcText != null) npcText.maxVisibleCharacters++;
-            if (speaker != null) NPCSpeak();
+            if (npcSpeaker != null) NPCSpeak();
             yield return new WaitForSeconds(typingSpeed);
         }
         originalTextWritten = true;
@@ -322,7 +334,7 @@ public class DialogueManager : MonoBehaviour
                 for (int i = 0; i < decypherText.textInfo.characterCount; i++)
                 {
                     decypherText.maxVisibleCharacters++;
-                    //if (speaker != null) NPCSpeak(); PONER SONIDO DE TYPING
+                    if (consoleSpeaker != null) ConsoleSpeak(); //PONER SONIDO DE TYPING
                     yield return new WaitForSeconds(typingSpeed / 2);
                 }
                 if (currentInfo != null)
@@ -507,18 +519,40 @@ public class DialogueManager : MonoBehaviour
                 }
             }
             textToRead = modifiedText;
-            
+
         }
+        StopCoroutine(Decyphering(GameManager.Instance.languageUnderstanding + "% language unlocked"));
+        StopCoroutine(SimpleDecyphering());
+        decypherText.gameObject.SetActive(false);
+        decypheringDone = true;
         if (currentInfo.needForInteraction || !firstInteraction)StartCoroutine(TypeOriginalLine());
         else StartCoroutine(Decyphering("decyphering...")); //StartCoroutine(TypeLine());
     }
-    void NPCSpeak()
+    public void NPCSpeak()
     {
         //speaker.loop = false;
-        if (!speaker.isPlaying)
+        if (!npcSpeaker.isPlaying)
         {
-            speaker.clip = npcVoices[Random.Range(0 ,npcVoices.Length)];
-            speaker.Play();
+            npcSpeaker.clip = npcVoices[Random.Range(0 ,npcVoices.Length)];
+            npcSpeaker.Play();
+        }
+    }
+    void MachineSpeak()
+    {
+        //speaker.loop = false;
+        if (!machineSpeaker.isPlaying)
+        {
+            machineSpeaker.clip = machineSounds[Random.Range(0 ,machineSounds.Length)];
+            machineSpeaker.Play();
+        }
+    }
+    void ConsoleSpeak()
+    {
+        //speaker.loop = false;
+        if (!consoleSpeaker.isPlaying)
+        {
+            if(consoleSpeaker.clip== null)consoleSpeaker.clip = consoleSound;
+            consoleSpeaker.Play();
         }
     }
     public void LearnVocab()

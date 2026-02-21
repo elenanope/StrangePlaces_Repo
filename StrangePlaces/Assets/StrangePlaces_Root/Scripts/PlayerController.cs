@@ -212,9 +212,11 @@ public class PlayerController : MonoBehaviour
             if(!npcInRange)
             {
                 dialogueInfo = other.GetComponent<DialogueInfo>();
+                if (other.gameObject.CompareTag("NPC") && !dialogueInfo.needForInteraction) DialogueManager.Instance.RegisterInfo(dialogueInfo);
                 if (!dialogueInfo.onlyLanguage)
                 {
                     DialogueManager.Instance.dialogueMark.SetActive(true);
+                    DialogueManager.Instance.NPCSpeak();
                 }
                 else
                 {
@@ -236,7 +238,8 @@ public class PlayerController : MonoBehaviour
     {
         if (other.gameObject.CompareTag("NPC") || other.gameObject.CompareTag("Interactable") || other.gameObject.CompareTag("Pickable"))
         {
-            dialogueInfo = null;
+            if (other.gameObject.CompareTag("NPC") && !dialogueInfo.needForInteraction) DialogueManager.Instance.RegisterInfo(null);
+                dialogueInfo = null;
             DialogueManager.Instance.dialogueMark.SetActive(false);
             npcInRange = false;
             if (other.gameObject.CompareTag("Pickable")) objectToHold = null;
