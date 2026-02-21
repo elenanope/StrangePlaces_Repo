@@ -9,6 +9,7 @@ public class DialogueInfo : MonoBehaviour
     public bool onlyLanguage;//quitar??
     public bool pickUp;
     public string pickUpNeeded;
+    public string note;
     public int languageValue;//quitar??
     public string[] dialogueLines;
     public string[] dialogueLinesDiscovered;
@@ -41,12 +42,13 @@ public class DialogueInfo : MonoBehaviour
         public int[] languagePercentage;
         public int[] timesAdded;
     }
-    private void Awake()
+    private void Start()
     {
         if (ownBubble != null) ownBubble.SetActive(false);
-        if(questIndex == -1)
+        if (questIndex == -1)
         {
             unlockedTrigger.SetActive(false);
         }
+        else return;
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
@@ -19,20 +20,17 @@ public class GameManager : MonoBehaviour
         if (instance == null)
         {
             instance = this;
+            DontDestroyOnLoad(gameObject);
         }
-        else Destroy(instance);
-        DontDestroyOnLoad(gameObject);
+        else Destroy(gameObject);
     }
-    public void ExitGame()
-    {
-        Application.Quit();
-    }
+    
     public void AddLanguage(int numberAdded)
     {
-        if (languageUnderstanding < 100) languageUnderstanding += numberAdded;
-    }
-    public void WinGame()
-    {
-        Debug.Log("you won");
+        if (languageUnderstanding < 100)
+        {
+            languageUnderstanding += numberAdded;
+            if(languageUnderstanding > 100) languageUnderstanding = 100;
+        }
     }
 }

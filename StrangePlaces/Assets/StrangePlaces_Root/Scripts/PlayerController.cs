@@ -53,6 +53,8 @@ public class PlayerController : MonoBehaviour
 
 
     [SerializeField] float timeSinceMove;
+    GameObject objectToHold;
+    DialogueInfo dialogueInfo;
     Quaternion mapRotation;
     bool npcInRange;
     #endregion
@@ -126,7 +128,8 @@ public class PlayerController : MonoBehaviour
         {
             if (movementMult != 2) movementMult = 2f;
             timeSinceMove = 0;
-            anim.SetBool("isWalking", true);
+            if (!anim.GetBool("isWalking")) anim.SetBool("isWalking", true);
+            if(!playerSpeaker.isPlaying)playerSpeaker.Play();
             //anim.SetInteger("playerState", isSprinting ? 2 : 1);
         }
         else
@@ -138,6 +141,8 @@ public class PlayerController : MonoBehaviour
                 timeSinceMove = 0;
                 anim.SetBool("isWalking", false);
             }
+
+            if (playerSpeaker.isPlaying) playerSpeaker.Stop();
         }
         playerRb.AddForce(velocityChange, ForceMode.VelocityChange);
     }
@@ -150,16 +155,42 @@ public class PlayerController : MonoBehaviour
     }
     void Interact()
     {
-       if(canInteract && npcInRange)
-       {
-            if (anim.GetBool("isWalking")) anim.SetBool("isWalking", false);
-            playerRb.linearVelocity = Vector3.zero;
-            if (GameManager.Instance.heldObjectMesh != null)
+       if(canInteract)
+        {
+            if (npcInRange)
             {
-                GameManager.Instance.heldObjectMesh.transform.parent = holdingPoint;
-                GameManager.Instance.heldObjectMesh.transform.localPosition = new Vector3(0f, 0f, 0f);
+                DialogueManager.Instance.RegisterInfo(dialogueInfo);
+                if (anim.GetBool("isWalking")) anim.SetBool("isWalking", false);
+                playerSpeaker.Stop();
+                playerRb.linearVelocity = Vector3.zero;
+                if (objectToHold != null)
+                {
+                    if(GameManager.Instance.heldObjectMesh == null)
+                    {
+                        GameManager.Instance.heldObjectMesh = objectToHold;
+                        GameManager.Instance.heldObjectMesh.transform.parent = holdingPoint;
+                        GameManager.Instance.heldObjectMesh.transform.localPosition = new Vector3(0f, 0f, 0f);
+                        DialogueManager.Instance.dialogueMark.SetActive(false);
+                        objectToHold = null;
+                    }
+                    else
+                    {
+                        //sonido de wrong
+                    }
+                }
+                DialogueManager.Instance.DialogueCall();
+                if(!GameManager.Instance.playerInDialogue) npcInRange = false;
             }
-            DialogueManager.Instance.DialogueCall();
+            else
+            {
+                if (GameManager.Instance.heldObjectMesh != null)
+                {
+                    GameManager.Instance.heldObjectMesh.transform.parent = null;
+                    GameManager.Instance.heldObjectMesh.transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + 1f);
+                    GameManager.Instance.heldObjectMesh = null;
+                    GameManager.Instance.heldObject = "";
+                }
+            }
        }
     }
     IEnumerator InteractRoutine()
@@ -174,22 +205,41 @@ public class PlayerController : MonoBehaviour
     {
         if (isGrounded) playerRb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
     }
-    private void OnTriggerEnter(Collider other)
+    private void OnTriggerStay(Collider other)
     {
         if(other.gameObject.CompareTag("NPC") || other.gameObject.CompareTag("Interactable") || other.gameObject.CompareTag("Pickable"))
         {
-            DialogueManager.Instance.RegisterInfo(other.gameObject.GetComponent<DialogueInfo>());
-            npcInRange = true;
-            if (other.gameObject.CompareTag("Pickable")) GameManager.Instance.heldObjectMesh = other.gameObject;
+            if(!npcInRange)
+            {
+                dialogueInfo = other.GetComponent<DialogueInfo>();
+                if (!dialogueInfo.onlyLanguage)
+                {
+                    DialogueManager.Instance.dialogueMark.SetActive(true);
+                }
+                else
+                {
+                    if(dialogueInfo.languageValue > 0)
+                    {
+                        DialogueManager.Instance.dialogueMark.SetActive(true);
+                    }
+                    else
+                    {
+                        DialogueManager.Instance.dialogueMark.SetActive(false);
+                    }
+                }
+                npcInRange = true;
+                if (other.gameObject.CompareTag("Pickable")) objectToHold = other.gameObject;
+            }
         }
     }
     private void OnTriggerExit(Collider other)
     {
         if (other.gameObject.CompareTag("NPC") || other.gameObject.CompareTag("Interactable") || other.gameObject.CompareTag("Pickable"))
         {
-            DialogueManager.Instance.RegisterInfo(null);
+            dialogueInfo = null;
+            DialogueManager.Instance.dialogueMark.SetActive(false);
             npcInRange = false;
-            if (other.gameObject.CompareTag("Pickable")) GameManager.Instance.heldObjectMesh = null;
+            if (other.gameObject.CompareTag("Pickable")) objectToHold = null;
         }
     }
     #region Input Methods

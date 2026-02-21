@@ -6,6 +6,9 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/StrangePlaces_Root/Scenes/MainMenu.unity
+    guid: bed8be316704c1249acf8154ac894ab0
+  - enabled: 1
     path: Assets/StrangePlaces_Root/Scenes/TestScene.unity
     guid: 99c9720ab356a0642a771bea13969a05
   m_configObjects:
