@@ -102,6 +102,7 @@ public class DialogueManager : MonoBehaviour
                     if (currentInfo.ownText != null)
                     {
                         npcText = currentInfo.ownText;
+                        DialogueManager.Instance.NPCSpeak();
                         lineIndex = 0;
                         if (currentInfo.questIndex != -1)
                         {

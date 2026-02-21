@@ -212,11 +212,13 @@ public class PlayerController : MonoBehaviour
             if(!npcInRange)
             {
                 dialogueInfo = other.GetComponent<DialogueInfo>();
-                if (other.gameObject.CompareTag("NPC") && !dialogueInfo.needForInteraction) DialogueManager.Instance.RegisterInfo(dialogueInfo);
+                if (other.gameObject.CompareTag("NPC") && !dialogueInfo.needForInteraction)
+                {
+                    DialogueManager.Instance.RegisterInfo(dialogueInfo);
+                }
                 if (!dialogueInfo.onlyLanguage)
                 {
                     DialogueManager.Instance.dialogueMark.SetActive(true);
-                    DialogueManager.Instance.NPCSpeak();
                 }
                 else
                 {
